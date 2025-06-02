@@ -180,10 +180,8 @@ class ParticleFilterNode(Node):
         best_pose_stamped = PoseStamped()
         best_pose_stamped.header.stamp = self.get_clock().now().to_msg()
         best_pose_stamped.header.frame_id = "map"
-        best_pose_stamped.pose.position.x = best_particle[1]
-        best_pose_stamped.pose.position.y = best_particle[0]
-        # print(best_particle[0])
-        # print(best_particle[1])
+        best_pose_stamped.pose.position.x = best_particle[0]
+        best_pose_stamped.pose.position.y = best_particle[1]
         best_pose_stamped.pose.position.z = 0.0
 
         qx, qy, qz, qw = self.quaternion_from_yaw(best_particle[2])
