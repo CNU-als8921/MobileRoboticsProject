@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
 from nav_msgs.msg import Odometry
 
 
@@ -17,8 +17,8 @@ class GoalNavigationNode(Node):
 
         # 파라미터 설정
         goal_x = 2
-        goal_y = 2
-        goal_theta = 180
+        goal_y = 0
+        goal_theta = 90
 
         self.robot = Robot(0, 0, 0)  # 초기 pose
         self.planner = GoalPlanner(goal_x, goal_y, goal_theta, self.robot)
@@ -35,7 +35,8 @@ class GoalNavigationNode(Node):
         #     self.pose_callback,
         #     10
         # )
-        self.create_subscription(Odometry, '/odom', self.pose_callback, 10)
+        # self.create_subscription(Odometry, '/odom', self.pose_callback, 10)
+        self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)
 
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
@@ -44,8 +45,8 @@ class GoalNavigationNode(Node):
 
         self.get_logger().info("Goal Navigation Node Started.")
 
-    def pose_callback(self, msg):
-        pose = msg.pose.pose
+    def pose_callback(self, msg : PoseStamped):
+        pose = msg.pose
         # 2D 좌표 및 오일러 각도로 변환
         x = pose.position.x
         y = pose.position.y
