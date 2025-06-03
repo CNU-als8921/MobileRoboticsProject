@@ -33,10 +33,10 @@ class GoalPlanner:
         # 주의: arctan2(y, x)에서 y는 서쪽, x는 북쪽이 됨
         self.alpha = self.saturationRad(np.arctan2(dy, dx) - np.deg2rad(self.robot.theta))
 
-        if abs(self.alpha) > np.pi / 2:
-            self.mode = "REVERSE"
-        else:
-            self.mode = "FORWARD"
+        # if abs(self.alpha) > np.pi / 2:
+        #     self.mode = "REVERSE"
+        # else:
+        #     self.mode = "FORWARD"
 
     def calculateVelocity(self):
 
