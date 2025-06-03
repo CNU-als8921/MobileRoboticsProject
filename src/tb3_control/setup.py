@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "pose_pub = tb3_control.pose_publisher:main",
         ],
     },
 )
