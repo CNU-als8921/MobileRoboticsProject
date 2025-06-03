@@ -94,7 +94,7 @@ class GoalNavigationNode(Node):
         elif w < -self.max_angular_velocity:
             return -self.max_angular_velocity
         return w
-
+    
 def main(args=None):
     rclpy.init(args=args)
     node = GoalNavigationNode()
@@ -103,8 +103,16 @@ def main(args=None):
     except KeyboardInterrupt:
         node.get_logger().info("Shutting down node.")
     finally:
+        # 종료 전에 정지 명령 전송
+        stop_twist = Twist()
+        stop_twist.linear.x = 0.0
+        stop_twist.angular.z = 0.0
+        node.cmd_vel_pub.publish(stop_twist)
+        node.get_logger().info("Published stop command before shutdown.")
+
         node.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
