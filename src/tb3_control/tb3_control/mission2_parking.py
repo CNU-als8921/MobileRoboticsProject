@@ -25,39 +25,25 @@ class GoalNavigationNode(Node):
         self.max_linear_velocity = 0.1   # m/s
         self.max_angular_velocity = 1.0  # rad/s
 
-        self.pose_received = False  # pose 수신 여부
+        self.pose_received = False
 
-        # Subscriber: 현재 pose
+        # self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
         self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)
-
-        # Subscriber: RViz goal
         self.create_subscription(PoseStamped, '/move_base_simple/goal', self.goal_callback, 10)
 
-        # Publisher: velocity 명령
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        # Timer (10ms)
         self.timer_period = 0.01
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
 
         self.get_logger().info("Goal Navigation Node Started.")
 
     def pose_callback(self, msg: PoseStamped):
-        pose = msg.pose
-        x = pose.position.x
-        y = pose.position.y
-        q = pose.orientation
+        self.robot.update_from_pose(msg)
+        self.pose_received = True
 
-        # Quaternion to theta (rad)
-        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
-        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
-        theta = math.atan2(siny_cosp, cosy_cosp)
-
-        # 업데이트
-        self.robot.x = x
-        self.robot.y = y
-        self.robot.theta = self.saturationRad(theta) * 180 / np.pi  # degree
-
+    def odom_callback(self, msg: Odometry):
+        self.robot.update_from_odom(msg)
         self.pose_received = True
 
     def goal_callback(self, msg: PoseStamped):
