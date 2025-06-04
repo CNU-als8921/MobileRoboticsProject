@@ -18,6 +18,11 @@ class GoalPlanner:
 
         self.mode = "FORWARD"
 
+    def setGoal(self, x, y, theta_deg):
+        self.goal_x = x
+        self.goal_y = y
+        self.goal_theta = theta_deg
+        
     def setParameter(self, k_r, k_a, k_b):
         self.K_rho = k_r
         self.K_alpha = k_a
