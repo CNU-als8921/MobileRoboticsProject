@@ -19,7 +19,7 @@ class GoalPlanner:
 
         self.mode = "FORWARD"
 
-    def setGoalFromPose(self, pose_msg : PoseStamped):
+    def set_goal_from_pose(self, pose_msg : PoseStamped):
         q = pose_msg.pose.orientation
 
         siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
@@ -30,20 +30,20 @@ class GoalPlanner:
         self.goal_y = pose_msg.pose.position.y
         self.goal_theta = math.degrees(theta_rad)
 
-    def setGoal(self, x, y, theta_deg):
+    def set_goal(self, x, y, theta_deg):
         self.goal_x = x
         self.goal_y = y
         self.goal_theta = theta_deg
         
-    def setParameter(self, k_r, k_a, k_b):
+    def set_parameter(self, k_r, k_a, k_b):
         self.K_rho = k_r
         self.K_alpha = k_a
         self.K_beta = k_b
 
-    def saturationRad(self, rad):
+    def sat_radian(self, rad):
         return (rad + np.pi) % (2 * np.pi) - np.pi
 
-    def calculateVelocity(self):
+    def calculate_velocity(self):
 
         dx = self.goal_x - self.robot.x  # 북쪽 차이
         dy = self.goal_y - self.robot.y  # 서쪽 차이
@@ -51,15 +51,15 @@ class GoalPlanner:
         path_theta = np.arctan2(dy, dx)  # (y=서쪽, x=북쪽)
 
         rho = np.hypot(dx, dy)
-        alpha = self.saturationRad(path_theta - np.deg2rad(self.robot.theta))
-        beta = self.saturationRad(np.deg2rad(self.goal_theta) - path_theta)
+        alpha = self.sat_radian(path_theta - np.deg2rad(self.robot.theta))
+        beta = self.sat_radian(np.deg2rad(self.goal_theta) - path_theta)
 
         v = self.K_rho * rho
         w = self.K_alpha * alpha + self.K_beta * beta
 
         if rho < 0.05:
             v = 0
-            heading_error = self.saturationRad(np.deg2rad(self.goal_theta) - np.deg2rad(self.robot.theta))
+            heading_error = self.sat_radian(np.deg2rad(self.goal_theta) - np.deg2rad(self.robot.theta))
             w = 1.0 * heading_error
 
         return v, w

@@ -48,10 +48,10 @@ class GoalNavigationNode(Node):
     def goal_callback(self, msg: PoseStamped):
         if self.planner is None:
             self.planner = GoalPlanner(0, 0, 0, self.robot)
-            self.planner.setGoalFromPose(msg)
-            self.planner.setParameter(0.3, 0.8, -0.15)
+            self.planner.set_goal_from_pose(msg)
+            self.planner.set_parameter(0.3, 0.8, -0.15)
         else:
-            self.planner.setGoalFromPose(msg)
+            self.planner.set_goal_from_pose(msg)
 
         self.get_logger().info(f"New goal received: x={self.planner.goal_x:.2f}, y={self.planner.goal_y:.2f}, theta={self.planner.goal_theta:.2f} deg")
 
@@ -69,9 +69,9 @@ class GoalNavigationNode(Node):
                 self.get_logger().info("Waiting for goal... Publishing zero velocity.")
             return
 
-        v, w = self.planner.calculateVelocity()
-        v = self.saturationVelocity(v)
-        w = self.saturationAngularVelocity(w)
+        v, w = self.planner.calculate_velocity()
+        v = self.saturation_velocity(v)
+        w = self.saturation_angular_velocity(w)
 
         twist.linear.x = float(v)
         twist.angular.z = float(w)
@@ -80,13 +80,10 @@ class GoalNavigationNode(Node):
         self.get_logger().info(f"x={self.robot.x:.2f}, y={self.robot.y:.2f}, theta={self.robot.theta:.2f}")
         self.get_logger().info(f"Publishing cmd_vel: v={v:.2f}, w={w:.2f}")
 
-    def saturationRad(self, rad):
-        return (rad + np.pi) % (2 * np.pi) - np.pi
-
-    def saturationVelocity(self, v):
+    def saturation_velocity(self, v):
         return max(min(v, self.max_linear_velocity), -self.max_linear_velocity)
 
-    def saturationAngularVelocity(self, w):
+    def saturation_angular_velocity(self, w):
         return max(min(w, self.max_angular_velocity), -self.max_angular_velocity)
 
 
