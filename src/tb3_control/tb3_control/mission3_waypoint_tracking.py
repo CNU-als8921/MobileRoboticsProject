@@ -13,8 +13,8 @@ class WaypointFollower(Node):
 
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        self.create_subscription(Odometry, '/odom', self.odom_callback, 10)  # Odom 기반 위치
-        # self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)  # PoseStamped 기반 위치
+        # self.create_subscription(Odometry, '/odom', self.odom_callback, 10)  # Odom 기반 위치
+        self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)  # PoseStamped 기반 위치
 
         self.timer = self.create_timer(0.05, self.timer_callback)
 
@@ -23,10 +23,10 @@ class WaypointFollower(Node):
 
         # Waypoints [(x, y), ...]
         self.waypoints = [
-            (3.0, 0.0),
-            (3.0, 3.0),
-            (0.0, 3.0),
-            (0.0, 0.0)
+            (3.0, -3.0),
+            (5.0, -3.0),
+            (0.0, -2.0),
+            (-1.0, -2.0)
         ]
         self.current_index = 0
         self.reached_all = False
@@ -85,7 +85,7 @@ class WaypointFollower(Node):
 
         # 도착 처리
         if distance < self.dist_threshold:
-            self.get_logger().info(f"Reached waypoint {self.current_index + 1}/{len(self.waypoints)}")
+            self.get_logger().info(f"Reached waypoint {self.current_index + 1}/{len(self.waypoints)}  : [{goal_x}, {goal_y}]")
             self.current_index += 1
             if self.current_index >= len(self.waypoints):
                 self.reached_all = True
@@ -99,7 +99,7 @@ class WaypointFollower(Node):
         # 전진 속도 고정
         twist.linear.x = self.linear_speed
         twist.angular.z = angular_velocity
-        print(f"Linear Speed (v): {twist.linear.x:.2f}, Angular Speed (w): {twist.angular.z:.2f}")
+        # print(f"Linear Speed (v): {twist.linear.x:.2f}, Angular Speed (w): {twist.angular.z:.2f}")
 
 
         self.cmd_pub.publish(twist)
