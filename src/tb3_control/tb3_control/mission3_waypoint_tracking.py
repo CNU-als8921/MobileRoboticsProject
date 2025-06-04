@@ -81,7 +81,7 @@ class WaypointFollower(Node):
         dy = goal_y - self.robot.y
         distance = math.hypot(dx, dy)
         target_theta = math.atan2(dy, dx)
-        angle_error = self.normalize_angle(target_theta - self.robot.get_theta_rad())
+        angle_error = self.normalize_radian(target_theta - self.robot.get_theta_rad())
 
         # 도착 처리
         if distance < self.dist_threshold:
@@ -104,7 +104,7 @@ class WaypointFollower(Node):
 
         self.cmd_pub.publish(twist)
 
-    def normalize_angle(self, angle):
+    def normalize_radian(self, angle):
         return (angle + math.pi) % (2 * math.pi) - math.pi
 def main(args=None):
     rclpy.init(args=args)

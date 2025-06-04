@@ -38,7 +38,7 @@ class GoalPlanner:
         self.K_alpha = k_a
         self.K_beta = k_b
 
-    def sat_radian(self, rad):
+    def normalize_radian(self, rad):
         return (rad + np.pi) % (2 * np.pi) - np.pi
 
     def calculate_velocity(self):
@@ -49,15 +49,15 @@ class GoalPlanner:
         path_theta = np.arctan2(dy, dx)  # (y=서쪽, x=북쪽)
 
         rho = np.hypot(dx, dy)
-        alpha = self.sat_radian(path_theta - np.deg2rad(self.robot.theta))
-        beta = self.sat_radian(np.deg2rad(self.goal_theta) - path_theta)
+        alpha = self.normalize_radian(path_theta - np.deg2rad(self.robot.theta))
+        beta = self.normalize_radian(np.deg2rad(self.goal_theta) - path_theta)
 
         v = self.K_rho * rho
         w = self.K_alpha * alpha + self.K_beta * beta
 
         if rho < 0.05:
             v = 0
-            heading_error = self.sat_radian(np.deg2rad(self.goal_theta) - np.deg2rad(self.robot.theta))
+            heading_error = self.normalize_radian(np.deg2rad(self.goal_theta) - np.deg2rad(self.robot.theta))
             w = 1.0 * heading_error
 
         return v, w
