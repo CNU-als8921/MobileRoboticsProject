@@ -17,8 +17,6 @@ class GoalPlanner:
         self.K_alpha = 0
         self.K_beta = 0
 
-        self.mode = "FORWARD"
-
     def set_goal_from_pose(self, pose_msg : PoseStamped):
         q = pose_msg.pose.orientation
 
