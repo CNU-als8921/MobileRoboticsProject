@@ -1,22 +1,29 @@
-import numpy as np
-import matplotlib.pyplot as plt
+from geometry_msgs.msg import Twist, PoseStamped
+from nav_msgs.msg import Odometry
+import math
 
 class Robot:
-    def __init__(self, x, y, theta):
+    def __init__(self, x=0.0, y=0.0, theta_deg=0.0):
         self.x = x
         self.y = y
-        self.theta = theta
+        self.theta = theta_deg
 
-    def updatePoseByVelocity(self, v, w, dt):
-        self.x += v * np.cos(np.deg2rad(self.theta)) * dt
-        self.y += v * np.sin(np.deg2rad(self.theta)) * dt
-        self.theta += np.rad2deg(w) * dt
+    def update_from_odom(self, odom_msg : Odometry):
+        pose = odom_msg.pose.pose
+        self._update_pose(pose.position.x, pose.position.y, pose.orientation)
 
-    def drawRobot(self, line_length = 1, color = 'r'):
+    def update_from_pose(self, pose_msg : PoseStamped):
+        pose = pose_msg.pose
+        self._update_pose(pose.position.x, pose.position.y, pose.orientation)
 
-        dx = line_length * np.cos(np.deg2rad(self.theta))
-        dy = line_length * np.sin(np.deg2rad(self.theta))
+    def _update_pose(self, x, y, q):
+        self.x = x
+        self.y = y
 
-        plt.plot(self.x, self.y, 'o', markersize = 15, color=color, alpha = 0.3, zorder=5)
-        plt.arrow(self.x, self.y, dx, dy, head_width=0, head_length=0, fc=color, ec=color,linewidth=1.5, zorder=5)
-        
+        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+        theta_rad = math.atan2(siny_cosp, cosy_cosp)
+        self.theta = math.degrees(theta_rad)
+
+    def get_theta_rad(self):
+        return math.radians(self.theta)
