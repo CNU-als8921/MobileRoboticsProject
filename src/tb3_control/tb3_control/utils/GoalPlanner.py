@@ -3,8 +3,9 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+import math
 from Robot import Robot
-
+from geometry_msgs.msg import PoseStamped
 class GoalPlanner:
     def __init__(self, desX, desY, desTheta, robot : Robot):
         self.goal_x = desX
@@ -18,6 +19,17 @@ class GoalPlanner:
 
         self.mode = "FORWARD"
 
+    def setGoalFromPose(self, pose_msg : PoseStamped):
+        q = pose_msg.pose.orientation
+
+        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
+        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
+        theta_rad = math.atan2(siny_cosp, cosy_cosp)
+
+        self.goal_x = pose_msg.pose.position.x
+        self.goal_y = pose_msg.pose.position.y
+        self.goal_theta = math.degrees(theta_rad)
+
     def setGoal(self, x, y, theta_deg):
         self.goal_x = x
         self.goal_y = y
@@ -30,18 +42,6 @@ class GoalPlanner:
 
     def saturationRad(self, rad):
         return (rad + np.pi) % (2 * np.pi) - np.pi
-    
-    def setDirection(self):
-        dx = self.goal_x - self.robot.x  # 북쪽 차이
-        dy = self.goal_y - self.robot.y  # 서쪽 차이
-
-        # 주의: arctan2(y, x)에서 y는 서쪽, x는 북쪽이 됨
-        self.alpha = self.saturationRad(np.arctan2(dy, dx) - np.deg2rad(self.robot.theta))
-
-        # if abs(self.alpha) > np.pi / 2:
-        #     self.mode = "REVERSE"
-        # else:
-        #     self.mode = "FORWARD"
 
     def calculateVelocity(self):
 
@@ -49,8 +49,6 @@ class GoalPlanner:
         dy = self.goal_y - self.robot.y  # 서쪽 차이
 
         path_theta = np.arctan2(dy, dx)  # (y=서쪽, x=북쪽)
-        if self.mode == "REVERSE":
-            path_theta = self.saturationRad(path_theta + np.pi)
 
         rho = np.hypot(dx, dy)
         alpha = self.saturationRad(path_theta - np.deg2rad(self.robot.theta))
@@ -58,9 +56,6 @@ class GoalPlanner:
 
         v = self.K_rho * rho
         w = self.K_alpha * alpha + self.K_beta * beta
-
-        if self.mode == "REVERSE":
-            v = -v
 
         if rho < 0.05:
             v = 0

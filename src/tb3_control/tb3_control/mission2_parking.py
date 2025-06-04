@@ -7,7 +7,6 @@ from nav_msgs.msg import Odometry
 from utils.Robot import Robot
 from utils.GoalPlanner import GoalPlanner
 import numpy as np
-import math
 
 
 class GoalNavigationNode(Node):
@@ -47,35 +46,19 @@ class GoalNavigationNode(Node):
         self.pose_received = True
 
     def goal_callback(self, msg: PoseStamped):
-        pose = msg.pose
-        x = pose.position.x
-        y = pose.position.y
-        q = pose.orientation
-
-        # Quaternion to theta (deg)
-        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
-        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
-        theta_rad = math.atan2(siny_cosp, cosy_cosp)
-        theta_deg = self.saturationRad(theta_rad) * 180 / np.pi
-
-        self.goal_x = x
-        self.goal_y = y
-        self.goal_theta = theta_deg
-
         if self.planner is None:
-            self.planner = GoalPlanner(x, y, theta_deg, self.robot)
+            self.planner = GoalPlanner(0, 0, 0, self.robot)
+            self.planner.setGoalFromPose(msg)
             self.planner.setParameter(0.3, 0.8, -0.15)
         else:
-            self.planner.setGoal(x, y, theta_deg)
+            self.planner.setGoalFromPose(msg)
 
-        self.planner.setDirection()
-
-        self.get_logger().info(f"New goal received: x={x:.2f}, y={y:.2f}, theta={theta_deg:.2f} deg")
+        self.get_logger().info(f"New goal received: x={self.planner.goal_x:.2f}, y={self.planner.goal_y:.2f}, theta={self.planner.goal_theta:.2f} deg")
 
     def timer_callback(self):
         twist = Twist()
 
-        if not self.pose_received or self.goal_x is None:
+        if not self.pose_received or self.planner is None:
             twist.linear.x = 0.0
             twist.angular.z = 0.0
             self.cmd_vel_pub.publish(twist)
