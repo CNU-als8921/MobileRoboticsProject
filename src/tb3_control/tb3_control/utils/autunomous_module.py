@@ -23,7 +23,7 @@ def cost_func_distance(x):
 
 def laserscan_map(laserscan : LaserScan):
     angles = np.linspace(0, 2 * np.pi, len(laserscan.ranges))
-    distances = np.flip(laserscan.ranges)
+    distances = np.array(laserscan.ranges)
     ld = [SETTINGS.MAX_RANGE] * 360
 
     for i in range(len(angles)):
@@ -91,7 +91,7 @@ def pathplan(robot : Robot, laserscan : LaserScan, goal_x = None, goal_y = None)
     """
 
     angles = np.linspace(0, 2 * np.pi, len(laserscan.ranges))
-    distances = np.flip(laserscan.ranges)
+    distances = np.array(laserscan.ranges)
 
     ld = laserscan_map(laserscan)
     
