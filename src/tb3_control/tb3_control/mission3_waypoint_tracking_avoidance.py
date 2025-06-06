@@ -119,16 +119,14 @@ class AvoidanceNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    visualizer = DistanceVisualizer()
+    avoidance_node = AvoidanceNode()
 
-    # Spin ROS2 in separate thread
-    spin_thread = threading.Thread(target=rclpy.spin, args=(visualizer,), daemon=True)
+    spin_thread = threading.Thread(target=rclpy.spin, args=(avoidance_node,), daemon=True)
     spin_thread.start()
 
-    # GUI main loop
     plt.show()
 
-    visualizer.destroy_node()
+    avoidance_node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
