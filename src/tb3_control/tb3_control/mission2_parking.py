@@ -6,7 +6,6 @@ from nav_msgs.msg import Odometry
 
 from utils.Robot import Robot
 from utils.GoalPlanner import GoalPlanner
-import numpy as np
 
 
 class GoalNavigationNode(Node):
@@ -22,17 +21,22 @@ class GoalNavigationNode(Node):
         self.goal_theta = None  # degree 단위
 
         self.max_linear_velocity = 0.1   # m/s
-        self.max_angular_velocity = 1.0  # rad/s
+        self.max_angular_velocity = 1  # rad/s
 
         self.pose_received = False
 
+        ##### Odom #####
         # self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        # self.create_subscription(PoseStamped, '/goal_pose', self.goal_callback, 10)
+
+        ##### SLAM #####
         self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)
         self.create_subscription(PoseStamped, '/move_base_simple/goal', self.goal_callback, 10)
 
+
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        self.timer_period = 0.01
+        self.timer_period = 0.1
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
 
         self.get_logger().info("Goal Navigation Node Started.")
