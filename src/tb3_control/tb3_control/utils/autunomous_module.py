@@ -15,7 +15,7 @@ def normalize_angle(angle): return (angle + 180) % 360 - 180
 def cost_func_angle(x):
     # x = abs(x)
     # return 0.01 * x if x <= 10 else 0.1 * (x - 10)
-    return 1 - exp(- (x / 100) ** 2)
+    return abs(x)
 
 def cost_func_distance(x):
     # return 0 if x > 7 else 10 - 10/7 * x
@@ -55,6 +55,8 @@ def calculate_safe_zone(angles, distances):
     return temp
 
 def calculate_optimal_psi_d(ld, safe_ld, goal_psi):
+    print("GOAL_PSI", goal_psi)
+
     """
     Cost함수를 적용하여 각도별 Cost를 계산
     목적지 까지의 각도와 각도별 LaserScan 데이터에 대한 함수 사용
@@ -67,14 +69,25 @@ def calculate_optimal_psi_d(ld, safe_ld, goal_psi):
     Returns:
         Cost가 가장 낮은 각도 리턴
     """
-    theta_list = [[0, 10000]]
+    theta_list = [[180, 10000]]
 
     for i in range(-180, 180):
         if safe_ld[i] > 0:
             cost = (SETTINGS.GAIN_PSI * cost_func_angle(i - goal_psi) + 
                     SETTINGS.GAIN_DISTANCE * cost_func_distance(ld[i]))
             theta_list.append([i, cost])
-    return sorted(theta_list, key=lambda x: x[1])[0][0]
+
+
+
+    final_theta = 0
+    final_cost = 100000
+    for i in range(len(theta_list)):
+        if(theta_list[i][1] < final_cost):
+            final_cost = theta_list[i][1]
+            final_theta = theta_list[i][0]
+        
+    print(final_theta)
+    return final_theta
 
 
 def pathplan(robot : Robot, laserscan : LaserScan, goal_x = None, goal_y = None):
@@ -109,6 +122,7 @@ def pathplan(robot : Robot, laserscan : LaserScan, goal_x = None, goal_y = None)
         return [0, 0]
 
     safe_ld = calculate_safe_zone(angles, distances)
+
     psi_error = calculate_optimal_psi_d(ld, safe_ld, int(Goal_Psi))
     
     v = 0.2

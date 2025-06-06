@@ -25,7 +25,7 @@ class DistanceVisualizer(Node):
         self.lidar_angles = []
 
         self.laserscan_data = None
-        self.waypoints = [5.0, 0.0]
+        self.waypoints = [0, 0.0]
         self.psi_error = 0
 
         # ROS2 subscriptions
