@@ -38,7 +38,7 @@ class WaypointFollower(Node):
         # Parameters
         self.linear_speed = 0.1
         self.angular_speed_max = 1.0  # Maximum angular speed (rad/s)
-        self.dist_threshold = 0.3
+        self.dist_threshold = 0.15
 
         # PID coefficients for angular control
         self.kp = 1.0
