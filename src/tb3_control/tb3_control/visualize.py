@@ -12,18 +12,18 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 
-from autunomous_module import calculate_safe_zone
+from utils.autunomous_module import calculate_safe_zone
 from utils.Robot import Robot
 
 class DistanceVisualizer(Node):
     def __init__(self):
         super().__init__('distance_visualizer')
 
-        self.robot = Robot(-2, 0, -90)
+        self.robot = Robot(0, 0, 0)
 
         self.lidar_distances = []
         self.lidar_angles = []
-        self.waypoints = [-2, -5]
+        self.waypoints = [2, 1]
         self.psi_error = 0
         
         self.create_subscription(LaserScan, '/scan', self.laser_scan_callback, qos_profile_sensor_data)
@@ -55,7 +55,6 @@ class DistanceVisualizer(Node):
         self.ax.set_title('Distance Data in Polar Coordinates', va='bottom')
         self.ax.set_ylim(0, 10)
         self.ax.set_theta_zero_location("N")
-        self.ax.set_theta_direction(-1)
 
         if len(self.lidar_distances) > 0:
             self.ax.scatter(self.lidar_angles, self.lidar_distances, color='blue', s=2)
@@ -69,9 +68,10 @@ class DistanceVisualizer(Node):
             angle = self.normalize_radian(np.arctan2(dy, dx) - self.robot.get_theta_rad())
             print(np.rad2deg(angle))
             distance = np.sqrt(dx**2 + dy**2)
-            self.ax.scatter(-angle, distance, color='red', label='Waypoint')
 
-        self.ax.plot([0, np.radians(self.psi_error)], [0, 15], color='green', label='Waypoint Angle')
+            self.ax.plot([0, angle], [0, distance], color='green', label='Waypoint Angle')
+            self.ax.scatter(angle, distance, color='green', label='Waypoint')
+
         self.ax.legend()
         self.ax.grid(True)
 
