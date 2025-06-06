@@ -15,7 +15,7 @@ from nav_msgs.msg import Odometry
 from utils.autunomous_module import calculate_safe_zone, goal_check, laserscan_map, pathplan
 from utils.Robot import Robot
 
-class DistanceVisualizer(Node):
+class AvoidanceNode(Node):
     def __init__(self):
         super().__init__('distance_visualizer')
 
