@@ -12,7 +12,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 
-from utils.autunomous_module import calculate_safe_zone
+from utils.autunomous_module import calculate_safe_zone, goal_check, laserscan_map, pathplan
 from utils.Robot import Robot
 
 class DistanceVisualizer(Node):
@@ -23,7 +23,9 @@ class DistanceVisualizer(Node):
 
         self.lidar_distances = []
         self.lidar_angles = []
-        self.waypoints = [2, 1]
+
+        self.laserscan_data = None
+        self.waypoints = [5, 0]
         self.psi_error = 0
         
         self.create_subscription(LaserScan, '/scan', self.laser_scan_callback, qos_profile_sensor_data)
@@ -46,8 +48,9 @@ class DistanceVisualizer(Node):
 
 
     def laser_scan_callback(self, data : LaserScan):
-        self.lidar_distances = np.flip(data.ranges)
-        self.lidar_angles = np.linspace(0, 2 * np.pi, len(self.lidar_distances))
+        self.laserscan_data = data
+
+
 
 
     def update_plot(self, frame):
@@ -56,20 +59,32 @@ class DistanceVisualizer(Node):
         self.ax.set_ylim(0, 10)
         self.ax.set_theta_zero_location("N")
 
-        if len(self.lidar_distances) > 0:
-            self.ax.scatter(self.lidar_angles, self.lidar_distances, color='blue', s=2)
-            self.ax.fill(np.linspace(0, 2 * np.pi, 360), calculate_safe_zone(self.lidar_angles, self.lidar_distances), color=[0, 0, 1, 0.2])
+        if self.laserscan_data:
+            lidar_distances = np.flip(self.laserscan_data.ranges)
+            lidar_angles = np.linspace(0, 2 * np.pi, len(lidar_distances))
+            self.ax.scatter(lidar_angles, lidar_distances, color='blue', s=2)
+            self.ax.fill(np.linspace(0, 2 * np.pi, 360), calculate_safe_zone(lidar_angles, lidar_distances), color=[0, 0, 1, 0.2])
+
+        else: 
+            print("Waiting fot LaserScan")
+            return
+
 
         if self.waypoints:
             dx = self.waypoints[0] - self.robot.x
             dy = self.waypoints[1] - self.robot.y
 
-            print(dx, dy)
             angle = self.normalize_radian(np.arctan2(dy, dx) - self.robot.get_theta_rad())
-            print(np.rad2deg(angle))
             distance = np.sqrt(dx**2 + dy**2)
 
-            self.ax.plot([0, angle], [0, distance], color='green', label='Waypoint Angle')
+            ## 목적지와 현재 위치 사이에 장애물이 없는 경우
+            if(goal_check(self.robot, laserscan_map(self.laserscan_data), distance, np.rad2deg(angle))):
+                final_angle_d = angle
+            else:
+                final_angle_d = np.deg2rad(pathplan(self.robot, self.laserscan_data, self.waypoints[0], self.waypoints[1])[0])
+
+
+            self.ax.plot([0, final_angle_d], [0, distance], color='green', label='Waypoint Angle')
             self.ax.scatter(angle, distance, color='green', label='Waypoint')
 
         self.ax.legend()

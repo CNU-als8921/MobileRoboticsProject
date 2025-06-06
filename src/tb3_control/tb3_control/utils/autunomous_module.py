@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from Robot import Robot
 import numpy as np
 import SETTINGS
+from sensor_msgs.msg import LaserScan
 from math import ceil, floor, exp
         
 
@@ -20,7 +21,19 @@ def cost_func_distance(x):
     # return 0 if x > 7 else 10 - 10/7 * x
     return exp(- (x / 3) ** 2)
 
+def laserscan_map(laserscan : LaserScan):
+    angles = np.linspace(0, 2 * np.pi, len(laserscan.ranges))
+    distances = np.flip(laserscan.ranges)
+    ld = [SETTINGS.MAX_RANGE] * 360
+
+    for i in range(len(angles)):
+        ld[int(np.rad2deg(angles[i]))%360] = distances[i]
+    
+    return ld
+
+
 def calculate_safe_zone(angles, distances):
+    
     safe_zone = [SETTINGS.AVOID_RANGE] * 360
     ld = [SETTINGS.AVOID_RANGE] * 360
 
@@ -64,7 +77,7 @@ def calculate_optimal_psi_d(ld, safe_ld, goal_psi):
     return sorted(theta_list, key=lambda x: x[1])[0][0]
 
 
-def pathplan(robot=Robot(), ld = [], goal_x = None, goal_y = None):
+def pathplan(robot : Robot, laserscan : LaserScan, goal_x = None, goal_y = None):
     """
     LaserScan 데이터를 바탕으로 최적의 TauX, psi_e 값을 찾는 함수
 
@@ -76,6 +89,12 @@ def pathplan(robot=Robot(), ld = [], goal_x = None, goal_y = None):
     Returns:
         [psi_error, tauX]
     """
+
+    angles = np.linspace(0, 2 * np.pi, len(laserscan.ranges))
+    distances = np.flip(laserscan.ranges)
+
+    ld = laserscan_map(laserscan)
+    
     Goal_Psi = 0
     Goal_Distance = 0
 
@@ -83,74 +102,17 @@ def pathplan(robot=Robot(), ld = [], goal_x = None, goal_y = None):
     dx = goal_x - robot.x
     dy = goal_y - robot.y
 
-
-    Goal_Psi = np.arctan2(dx, dy) * 180 / np.pi - robot.theta
-    Goal_Psi = normalize_angle(Goal_Psi)
+    Goal_Psi = normalize_angle(np.rad2deg(np.arctan2(dy, dx) - robot.get_theta_rad()))
     Goal_Distance = np.sqrt(np.power(dx, 2) + np.power(dy, 2))
-
-
 
     if len(ld) == 0:
         return [0, 0]
 
-    safe_ld = calculate_safe_zone(ld)
+    safe_ld = calculate_safe_zone(angles, distances)
     psi_error = calculate_optimal_psi_d(ld, safe_ld, int(Goal_Psi))
     
-    
-    ## TauX를 계산하는 부분
-    if goal_check(robot, Goal_Distance, Goal_Psi):
-        tauX = 150
-        psi_error = Goal_Psi
-        if(abs(psi_error) < 2):
-            tauX = min((Goal_Distance ** 4) + 100, 300)
-
-        # print(f"전진 속도 {tauX}")
-    else:
-        Tx_dist_min = 30
-        Tx_dist_max = 200
-        dist_danger = 1.5
-        dist_safe = 6
-
-        Tx_angle_min = 50
-        Tx_angle_max = 200
-        angle_danger = 45
-
-
-        Dist = ld[0]
-
-        Tx_dist = 0
-        if(Dist < 0):
-            pass
-        elif(Dist >= 0 and Dist <= dist_danger):
-            Tx_dist = (Tx_dist_min/dist_danger) * Dist
-        elif(Dist <= dist_safe):
-            Tx_dist = ((Tx_dist_max - Tx_dist_min) / (dist_safe - dist_danger)) * Dist + Tx_dist_min
-        elif(Dist > dist_safe):
-            Tx_dist = Tx_dist_max
-        
-        Tx_angle = 0
-        Angle = abs(psi_error)
-        if(Angle <= angle_danger):
-            Tx_angle = ((Tx_angle_min - Tx_angle_max) / angle_danger) * Angle + Tx_angle_max
-        elif(Angle > angle_danger):
-            Tx_angle = (Tx_angle_min / (angle_danger - 180)) * (Angle - 180)
-        if(Angle > angle_danger):
-            tauX = Tx_angle
-        else:
-            tauX = Tx_dist + Tx_angle
-
-
-        tauX = min(tauX, 450)
-            
-
-
-    # 목표 웨이포인트 데이터 표시
-    if goal_x is not None and goal_y is not None:
-
-        return [psi_error, tauX]
-    else:
-        return [0, 0]
-
+    v = 0.2
+    return [psi_error, v]
 
     
 
