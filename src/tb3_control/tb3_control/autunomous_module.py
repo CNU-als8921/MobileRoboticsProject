@@ -25,8 +25,13 @@ def cost_func_distance(x):
     # return 0 if x > 7 else 10 - 10/7 * x
     return exp(- (x / 3) ** 2)
 
-def calculate_safe_zone(ld):
+def calculate_safe_zone(angles, distances):
     safe_zone = [SETTINGS.AVOID_RANGE] * 360
+    ld = [SETTINGS.AVOID_RANGE] * 360
+
+    for i in range(len(angles)):
+        ld[int(np.rad2deg(angles[i]))%360] = distances[i]
+
     for i in range(-180, 181):
         if 0 < ld[i] < SETTINGS.AVOID_RANGE:
             safe_zone[i] = 0
