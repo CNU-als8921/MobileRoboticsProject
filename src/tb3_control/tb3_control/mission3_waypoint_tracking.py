@@ -13,32 +13,35 @@ class WaypointFollower(Node):
 
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        # self.create_subscription(Odometry, '/odom', self.odom_callback, 10)  # Odom 기반 위치
-        self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)  # PoseStamped 기반 위치
+        ##### Odom #####
+        # self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
 
-        self.timer = self.create_timer(0.05, self.timer_callback)
+        ##### SLAM #####
+        self.create_subscription(PoseStamped, '/robot_pose', self.pose_callback, 10)
+
+        self.timer = self.create_timer(0.1, self.timer_callback)
 
         # Robot pose initialization
         self.robot = Robot()
 
-        # Waypoints [(x, y), ...]
         self.waypoints = [
-            (3.0, -3.0),
-            (5.0, -3.0),
-            (0.0, -2.0),
-            (-1.0, -2.0)
+            (1.0, 1.0),
+            (1.0, -1.0),
+            (2.0, 0.0),
+            (0.0, 0.0)
         ]
+
         self.current_index = 0
         self.reached_all = False
         self.pose_received = False
 
         # Parameters
-        self.linear_speed = 0.3
-        self.angular_speed_max = 5.0  # Maximum angular speed (rad/s)
-        self.dist_threshold = 0.1
+        self.linear_speed = 0.1
+        self.angular_speed_max = 1.0  # Maximum angular speed (rad/s)
+        self.dist_threshold = 0.3
 
         # PID coefficients for angular control
-        self.kp = 2.0
+        self.kp = 1.0
         self.ki = 0.0
         self.kd = 0.5
         self.prev_angle_error = 0.0
