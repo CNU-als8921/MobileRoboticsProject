@@ -26,6 +26,13 @@ class DistanceVisualizer(Node):
 
         self.laserscan_data = None
         self.waypoints = [0, 0.0]
+        self.waypoints = [
+            (1.0, 0.0),
+            (1.0, 0.0),
+            (2.0, 0.0),
+            (0.0, 0.0)
+        ]
+
         self.psi_error = 0
 
         # ROS2 subscriptions
@@ -56,15 +63,16 @@ class DistanceVisualizer(Node):
     def drive_to_waypoint(self, angle, distance):
         cmd = Twist()
 
-        distance_threshold = 0.1          # 10cm 이내
-
+        distance_threshold = 0.25
         if distance < distance_threshold:
-            # 도착 시 정지
+            self.waypoints.pop(0)
             cmd.linear.x = 0.0
             cmd.angular.z = 0.0
         else:
-            cmd.linear.x = 0.1
+            cmd.linear.x = 0.2
             cmd.angular.z = float(max(min(0.5 * angle, 0.5), -0.5))
+            if(abs(cmd.angular.z) > 0.2):
+                cmd.linear.x = 0.05
 
 
         print(cmd.linear.x, cmd.angular.z)
@@ -89,8 +97,8 @@ class DistanceVisualizer(Node):
 
 
         if self.waypoints:
-            dx = self.waypoints[0] - self.robot.x
-            dy = self.waypoints[1] - self.robot.y
+            dx = self.waypoints[0][0] - self.robot.x
+            dy = self.waypoints[0][1] - self.robot.y
 
             angle = self.normalize_radian(np.arctan2(dy, dx) - self.robot.get_theta_rad())
             distance = np.sqrt(dx**2 + dy**2)
@@ -98,21 +106,13 @@ class DistanceVisualizer(Node):
             if goal_check(self.robot, laserscan_map(self.laserscan_data), distance, np.rad2deg(angle)):
                 final_angle_d = angle
             else:
-                final_angle_d = np.deg2rad(pathplan(self.robot, self.laserscan_data, self.waypoints[0], self.waypoints[1])[0])
+                final_angle_d = np.deg2rad(pathplan(self.robot, self.laserscan_data, self.waypoints[0][0], self.waypoints[0][1])[0])
 
             self.ax.plot([0, final_angle_d], [0, distance], color='green', label='Waypoint Angle')
             self.ax.scatter(angle, distance, color='green', label='Waypoint')
 
-            print(f"[로봇 위치] x: {self.robot.x:.2f}, y: {self.robot.y:.2f}, θ: {math.degrees(self.robot.theta):.1f}°")
-            print(f"[목표 위치] x: {self.waypoints[0]}, y: {self.waypoints[1]}")
-            print(f"[거리] {distance:.2f} m, [방향오차] {math.degrees(angle):.1f}°")
-            print("[목표 각도 명령]", np.rad2deg(final_angle_d))
-
             # 🚀 이동 명령 발행
             self.drive_to_waypoint(final_angle_d, distance)
-
-        self.ax.legend()
-        self.ax.grid(True)
 
     def normalize_radian(self, angle):
         return (angle + math.pi) % (2 * math.pi) - math.pi
