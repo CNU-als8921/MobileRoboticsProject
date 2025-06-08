@@ -18,6 +18,10 @@ from utils.Robot import Robot
 class AvoidanceNode(Node):
     def __init__(self):
         super().__init__('distance_visualizer')
+        self.MAX_LINEAR_SPEED = 0.4
+        self.MIN_LINEAR_SPEED = -0.4
+        self.MAX_ANGULER_SPEED = 1
+
 
         self.robot = Robot(0, 0, 0)
 
@@ -69,10 +73,14 @@ class AvoidanceNode(Node):
             cmd.linear.x = 0.0
             cmd.angular.z = 0.0
         else:
-            cmd.linear.x = 0.2
-            cmd.angular.z = float(max(min(0.5 * angle, 0.5), -0.5))
-            if(abs(cmd.angular.z) > 0.2):
-                cmd.linear.x = 0.05
+            cmd.angular.z = float(max(min(self.MAX_ANGULER_SPEED * angle, 0.5), -self.MAX_ANGULER_SPEED))
+            min_speed = 0.05
+
+            scaling_factor = (1.0 - min(abs(cmd.angular.z) / self.MAX_ANGULER_SPEED, 1.0)) ** 2
+            cmd.linear.x = min_speed + (self.MAX_LINEAR_SPEED - min_speed) * scaling_factor
+
+        cmd.linear.x = self.saturate(cmd.linear.x, self.MIN_LINEAR_SPEED, self.MAX_LINEAR_SPEED)
+        cmd.angular.z = self.saturate(cmd.angular.z, -self.MAX_ANGULER_SPEED, self.MAX_ANGULER_SPEED)
 
 
         print(cmd.linear.x, cmd.angular.z)
@@ -116,6 +124,10 @@ class AvoidanceNode(Node):
 
     def normalize_radian(self, angle):
         return (angle + math.pi) % (2 * math.pi) - math.pi
+    
+    def saturate(self, value, min_value, max_value):
+        return max(min(value, max_value), min_value)
+
 
 def main(args=None):
     rclpy.init(args=args)
