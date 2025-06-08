@@ -27,9 +27,9 @@ class AvoidanceNode(Node):
         self.laserscan_data = None
         self.waypoints = [0, 0.0]
         self.waypoints = [
-            (1.0, 0.0),
-            (1.0, 0.0),
-            (2.0, 0.0),
+            (2.0, 1.0),
+            (4.0, -1.0),
+            (6.0, 1.0),
             (0.0, 0.0)
         ]
 

@@ -25,9 +25,9 @@ class WaypointFollower(Node):
         self.robot = Robot()
 
         self.waypoints = [
-            (1.0, 1.0),
-            (1.0, -1.0),
-            (2.0, 0.0),
+            (2.0, 1.0),
+            (4.0, -1.0),
+            (6.0, 1.0),
             (0.0, 0.0)
         ]
 
