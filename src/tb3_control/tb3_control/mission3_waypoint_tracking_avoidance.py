@@ -18,9 +18,11 @@ from utils.Robot import Robot
 class AvoidanceNode(Node):
     def __init__(self):
         super().__init__('distance_visualizer')
-        self.MAX_LINEAR_SPEED = 0.4
-        self.MIN_LINEAR_SPEED = -0.4
-        self.MAX_ANGULER_SPEED = 1
+        self.MAX_LINEAR_SPEED = 0.5
+        self.MIN_LINEAR_SPEED = 0
+        self.MAX_ANGULER_SPEED = 0.5
+
+        self.distance_threshold = 0.3
 
 
         self.robot = Robot(0, 0, 0)
@@ -31,9 +33,9 @@ class AvoidanceNode(Node):
         self.laserscan_data = None
         self.waypoints = [0, 0.0]
         self.waypoints = [
-            (2.0, 1.0),
-            (4.0, -1.0),
-            (6.0, 1.0),
+            (2.0, 0.9),
+            (4.0, -0.9),
+            (6.0, 0.9),
             (0.0, 0.0)
         ]
 
@@ -67,8 +69,7 @@ class AvoidanceNode(Node):
     def drive_to_waypoint(self, angle, distance):
         cmd = Twist()
 
-        distance_threshold = 0.25
-        if distance < distance_threshold:
+        if distance < self.distance_threshold:
             self.waypoints.pop(0)
             cmd.linear.x = 0.0
             cmd.angular.z = 0.0
