@@ -47,10 +47,10 @@ def calculate_safe_zone(angles, distances):
     temp = np.array(safe_zone)
     for i in range(-180, 180):
         if safe_zone[i] > safe_zone[i + 1]:
-            for j in range(floor(i + 1 - np.arctan2(SETTINGS.BOAT_WIDTH/2, ld[i + 1]) * 180 / np.pi), i + 1):
+            for j in range(floor(i + 1 - np.arctan2(SETTINGS.ROBOT_WIDTH/2, ld[i + 1]) * 180 / np.pi), i + 1):
                 temp[j] = 0
         if safe_zone[i] < safe_zone[i + 1]:
-            for j in range(i, ceil(i + np.arctan2(SETTINGS.BOAT_WIDTH/2, ld[i]) * 180 / np.pi) + 1):
+            for j in range(i, ceil(i + np.arctan2(SETTINGS.ROBOT_WIDTH/2, ld[i]) * 180 / np.pi) + 1):
                 temp[j] = 0
     return temp
 
@@ -141,14 +141,14 @@ def goal_check(robot = Robot(), ld= [], goal_distance = None, goal_psi = None):
         장애물이 있는지 판단 결과를 리턴 [Boolean]
     """
     l = goal_distance
-    theta = ceil(np.degrees(np.arctan2(SETTINGS.BOAT_WIDTH/2, l)))
+    theta = ceil(np.degrees(np.arctan2(SETTINGS.ROBOT_WIDTH/2, l)))
 
     check_ld = [0] * 360
     isAble = True
 
     for i in range(0, 90 - theta):
         angle = normalize_angle(int(goal_psi) - 90 + i)
-        r = SETTINGS.BOAT_WIDTH /(2 *np.cos(np.radians(i)))
+        r = SETTINGS.ROBOT_WIDTH /(2 *np.cos(np.radians(i)))
         check_ld[angle] = r
         if(ld[angle] == 0):
             continue
@@ -162,7 +162,7 @@ def goal_check(robot = Robot(), ld= [], goal_distance = None, goal_psi = None):
 
     for i in range(0, 90 - theta):
         angle = normalize_angle(int(goal_psi) + 90 - i)
-        r = SETTINGS.BOAT_WIDTH /(2 *np.cos(np.radians(i)))
+        r = SETTINGS.ROBOT_WIDTH /(2 *np.cos(np.radians(i)))
         check_ld[angle] = r
         if(ld[angle] == 0):
             continue

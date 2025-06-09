@@ -130,7 +130,7 @@ python3 src/tb3_control/tb3_control/mission3_waypoint_tracking_avoidance.py
 ### SETTINGS.py
 프로젝트의 전역 설정값을 관리하는 파일입니다.
 - AVOID_RANGE: 장애물 회피를 위한 안전 거리 (0.8m)
-- BOAT_WIDTH: 로봇의 폭 (1m)
+- ROBOT_WIDTH: 로봇의 폭 (1m)
 - MAX_RANGE: LiDAR의 최대 감지 거리 (100m)
 - GAIN_PSI: 방향 제어를 위한 게인 값 (1.0)
 - GAIN_DISTANCE: 거리 제어를 위한 게인 값 (0.5)
